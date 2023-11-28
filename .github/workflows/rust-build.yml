@@ -23,4 +23,4 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: rust-awake
-        path: target/x86_64-pc-windows-gnu/release/rust-awake.exe
+        path: target/x86_64-pc-windows-gnu/release/rust-never-sleep.exe
