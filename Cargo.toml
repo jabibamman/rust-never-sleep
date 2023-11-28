@@ -1,0 +1,13 @@
+[package]
+name = "rust-never-sleep"
+version = "0.1.0"
+edition = "2021"
+authors = ["James ABIB <james.abibamman@gmail.com>"]
+description = "A simple crate to prevent Windows from sleeping"
+
+[target.'cfg(windows)'.dependencies]
+winapi={version = "0.3.9", features = ["winbase", "winnt"]}
+
+[dependencies]
+log = "0.4.14"
+env_logger = "0.10.1"
