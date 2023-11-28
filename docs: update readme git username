@@ -14,7 +14,7 @@ Rust Awake is a small utility written in Rust to prevent Windows systems from au
 
 1. Clone the repository:
    ```sh
-   git clone https://github.com/your_username/rust-never-sleep.git
+   git clone https://github.com/jabibamman/rust-never-sleep.git
    cd rust-awake
    ```
 
