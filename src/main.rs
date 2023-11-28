@@ -12,7 +12,7 @@ fn let_me_sleep() {
     use winapi::um::winbase::SetThreadExecutionState;
 
     unsafe {
-        SetThreadExecutionState(ES_CONTINUOUS);
+        SetThreadExecutionState(ES_CONTINUOUS | ES_SYSTEM_REQUIRED | ES_AWAYMODE_REQUIRED);
     }
 
     let duration = std::time::Duration::from_secs(14 * 60);
