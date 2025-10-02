@@ -1,27 +1,17 @@
 #[cfg(windows)] extern crate winapi;
-#[cfg(windows)] use log::info;
+#[cfg(windows)] use std::error::Error;
+#[cfg(windows)] use std::time::Duration;
 
 use log::warn;
 
-
 #[cfg(windows)]
-fn let_me_sleep() {
-    use std::io::{stdin, Stdin};
-    use std::thread::sleep;
-    use std::time::Duration;
+fn get_duration() -> Result<Duration, Box<dyn Error>> {
+    use std::io::stdin;
 
-    use winapi::um::winnt::{ES_CONTINUOUS, ES_DISPLAY_REQUIRED, ES_SYSTEM_REQUIRED, ES_AWAYMODE_REQUIRED};
-    use winapi::um::winbase::SetThreadExecutionState;
-
-    unsafe {
-        SetThreadExecutionState(ES_CONTINUOUS | ES_DISPLAY_REQUIRED | ES_SYSTEM_REQUIRED | ES_AWAYMODE_REQUIRED);
-    }
-
-
-    let mut duration: Option<Duration> = None;
-
-        while duration.is_none() {
-        let mut input = String::new();
+    let mut duration  = None;
+    while duration.is_none() {
+        let mut input = String::new(); // here there is the example that we don't need nor want a mutable variable 
+        //because we are not going to change it after the initialization.
         
         println!("Enter sleep duration in seconds or press Enter for default (14 minutes): ");
         if stdin().read_line(&mut input).is_err() {
@@ -53,18 +43,44 @@ fn let_me_sleep() {
                 continue;
             },
             Some(Ok(secs)) => {
-                duration = Some(Duration::from_secs(secs));
+                return Ok(Duration::from_secs(secs));
             },
-        }
 
-        if duration.is_none() {
-            eprintln!("Failed to parse duration, please try again.");
+        }
+    }    
+
+    Err("Error while getting the duration".into())
+} 
+
+
+
+#[cfg(windows)]
+fn let_me_sleep() {
+    use std::thread::sleep;
+    use std::time::Duration;
+
+    use winapi::um::winnt::{ES_CONTINUOUS, ES_DISPLAY_REQUIRED, ES_SYSTEM_REQUIRED, ES_AWAYMODE_REQUIRED};
+    use winapi::um::winbase::SetThreadExecutionState;
+
+    unsafe {
+        SetThreadExecutionState(ES_CONTINUOUS | ES_DISPLAY_REQUIRED | ES_SYSTEM_REQUIRED | ES_AWAYMODE_REQUIRED);
+    }
+
+    let mut duration: Duration;
+    let duration_result = get_duration();
+    match duration_result {
+        Ok(duration_trimmed) =>  {
+            duration = duration_trimmed;
+        }
+        Err(e) => {
+            eprintln!("Error during retrieving the duration : {}", e);
         }
     }
     
     loop {
-        sleep(duration);
-        debug!("I'm still alive");
+        sleep(duration); // here we have a duration which is a Option<Duration>. To fix that we have to unwrap it 
+        // but we also don't want to use the unwrap function cause of the rust best practices. 
+        // the purpose here is to guarantee the duration is not None or sum.
     }
 
 }
