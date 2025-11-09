@@ -45,6 +45,7 @@ jobs:
           name: "rust-never-sleep ${{ github.ref_name }}"
           draft: false
           prerelease: false
+          generate_release_notes: true
           body: |
             ## rust-never-sleep ${{ github.ref_name }}
 
