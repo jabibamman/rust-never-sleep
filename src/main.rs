@@ -11,8 +11,7 @@ use log::warn;
 fn get_duration() -> Result<Duration, Box<dyn Error>> {
     use std::io::stdin;
 
-    let mut duration = None;
-    while duration.is_none() {
+    loop {
         let mut input = String::new();
 
         println!("Enter sleep duration in seconds or press Enter for default (14 minutes): ");
@@ -25,11 +24,14 @@ fn get_duration() -> Result<Duration, Box<dyn Error>> {
 
         if trimmed.is_empty() {
             eprintln!("No input, defaulting to 14 minutes");
-            duration = Some(Duration::from_secs(14 * 60));
+            return Ok(Duration::from_secs(14 * 60));
             break;
         }
 
-        let trimmed_parse: Option<Result<u64, _>> = Some(trimmed.parse::<u64>());
+        let trimmed_parse = match trimmed.parse::<u64>() {
+            Ok(secs) => Some(Ok(secs)),
+            Err(e) => Some(Err(e)),
+        };
 
         match trimmed_parse {
             None => {
@@ -56,7 +58,6 @@ fn get_duration() -> Result<Duration, Box<dyn Error>> {
 #[cfg(windows)]
 fn let_me_sleep() -> Result<(), Box<dyn std::error::Error>> {
     use std::thread::sleep;
-    use std::time::Duration;
     use winapi::um::winbase::SetThreadExecutionState;
     use winapi::um::winnt::{
         ES_AWAYMODE_REQUIRED, ES_CONTINUOUS, ES_DISPLAY_REQUIRED, ES_SYSTEM_REQUIRED,
