@@ -23,6 +23,17 @@ jobs:
           profile: minimal
           components: rustfmt, clippy
 
+      - name: Update Cargo.toml version from tag
+        shell: bash
+        run: |
+          TAG_NAME="${GITHUB_REF_NAME}"
+          VERSION="${TAG_NAME#v}"
+          echo "Setting Cargo.toml version to $VERSION"
+          sed -i "s/^version = \".*\"/version = \"$VERSION\"/" Cargo.toml
+
+          echo "Updated Cargo.toml:"
+          grep '^version' Cargo.toml
+
       - name: Build release exe
         run: cargo build --release --target=x86_64-pc-windows-gnu
 
