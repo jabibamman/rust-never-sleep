@@ -118,7 +118,6 @@ jobs:
 
           git add Cargo.toml
 
-          # S'il n'y a pas de changement (au cas où), on évite l'erreur de commit
           if git diff --cached --quiet; then
             echo "No changes to commit in Cargo.toml."
             exit 0
@@ -126,5 +125,4 @@ jobs:
 
           git commit -m "chore(ci): auto-update Cargo.toml version to ${VERSION}"
 
-          # On pousse sur master (adapte si ta branche par défaut est main)
           git push origin HEAD:master
