@@ -1,0 +1,94 @@
+name: Rust Windows Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          components: rustfmt, clippy
+
+      - name: Build release exe
+        run: cargo build --release --target=x86_64-pc-windows-gnu
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: "rust-never-sleep ${{ github.ref_name }}"
+          draft: false
+          prerelease: false
+          body: |
+            ## rust-never-sleep ${{ github.ref_name }}
+
+            **Version:** `${{ github.ref_name }}`  
+            **Commit:** `${{ github.sha }}`  
+            **Platform:** Windows (x86_64, target `x86_64-pc-windows-gnu`)
+
+            This release provides the latest Windows binary for **rust-never-sleep**, a small utility that prevents Windows from going to sleep using the `SetThreadExecutionState` API.
+
+            ### Features
+            - Keeps the system and display awake for a configurable duration.
+            - Accepts user input for the duration (in seconds).
+            - Defaults to 14 minutes if no input is provided.
+            - Handles invalid inputs gracefully (non-numeric values or zero).
+            - Logs activity and errors through the `log` + `env_logger` crates.
+
+            ### Installation
+            1. Download the file **`rust-never-sleep.exe`** from the release assets below.
+            2. Place it anywhere on your system (for example: `C:\Tools\rust-never-sleep\`).
+            3. (Optional) Add that folder to your system `PATH` if you want to run it from any terminal.
+
+            ### Usage
+            Run the executable directly or from a terminal:
+            ```powershell
+            .\rust-never-sleep.exe
+            ```
+
+            The program will prompt:
+            ```
+            Enter sleep duration in seconds or press Enter for default (14 minutes):
+            ```
+
+            - Press Enter to use the default duration.
+            - Enter a positive number to keep the system awake for that many seconds.
+            - Invalid input or `0` will show an error and ask again.
+
+            ### Logging
+            By default, logs at `info` level are printed to the console.  
+            To enable more verbose output, set the environment variable before running:
+            ```powershell
+            $env:RUST_LOG="debug"
+            .\rust-never-sleep.exe
+            ```
+
+            ### Technical details
+            - Language: Rust
+            - Target: `x86_64-pc-windows-gnu`
+            - Windows API: `SetThreadExecutionState`
+              - Flags used: `ES_CONTINUOUS`, `ES_DISPLAY_REQUIRED`, `ES_SYSTEM_REQUIRED`, `ES_AWAYMODE_REQUIRED`
+            - Error handling:
+              - I/O errors on `stdin` are logged and the program exits cleanly.
+              - Windows API failures are caught and logged using `last_os_error()`.
+              - Invalid inputs are handled interactively.
+
+            ### Build information
+            Built automatically via GitHub Actions on tag `${{ github.ref_name }}`.  
+            This binary is self-contained and requires no installation or dependencies.
+          files: |
+            target/x86_64-pc-windows-gnu/release/rust-never-sleep.exe
