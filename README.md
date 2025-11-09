@@ -1,46 +1,124 @@
-# Rust Never Sleep - Anti-sleep System for Windows
+# Rust Never Sleep 🦀
 
-## Description
+_A lightweight Rust utility to keep Windows awake._
 
-Rust Awake is a small utility written in Rust to prevent Windows systems from automatically entering sleep mode. This project makes use of the `winapi` crate to interact with Windows API.
+---
+
+## Overview
+
+**Rust Never Sleep** is a small command-line program written in Rust that prevents Windows from automatically entering sleep mode.  
+It interacts directly with the Windows API through the [`winapi`](https://crates.io/crates/winapi) crate, using `SetThreadExecutionState` to tell the system to stay active.
+
+---
+
+## Features
+
+- Keeps the system and display awake for a given duration.
+- Accepts user input in seconds.
+- Defaults to **14 minutes** when no input is provided.
+- Handles invalid input (non-numeric or zero) gracefully.
+- Uses structured logging (`info`, `warn`, `error`) via `log` + `env_logger`.
+- Simple to build, simple to run — no dependencies beyond Rust itself.
+
+---
 
 ## Prerequisites
 
-- Rust (https://www.rust-lang.org/tools/install)
-- Cargo (included with Rust)
-- Windows OS
+- 🪟 **Windows OS**
+- 🦀 **Rust toolchain** ([Install here](https://www.rust-lang.org/tools/install))
+- **Cargo** (included with Rust)
 
-## Installation, Build and Run
+---
+
+## Installation & Build
 
 1. Clone the repository:
-   ```sh
+
+   ```bash
    git clone https://github.com/jabibamman/rust-never-sleep.git
-   cd rust-awake
+   cd rust-never-sleep
    ```
 
-2. Build the project:
-   ```sh
-    cargo build --release
-    ```
+2. Build the project in release mode:
 
-3. Run the executable:
-    ```sh
-     ./target/release/rust-never-sleep.exe
-     ```
+   ```bash
+   cargo build --release
+   ```
+
+3. The compiled binary will be located at:
+   ```
+   target/release/rust-never-sleep.exe
+   ```
+
+---
 
 ## Usage
 
-The program will run in the background and prevent the system from entering sleep mode. To stop the program, simply close the terminal window.
+Run the executable directly or through a terminal:
 
+```powershell
+./rust-never-sleep.exe
+```
+
+You will be prompted:
+
+```
+Enter sleep duration in seconds or press Enter for default (14 minutes):
+```
+
+**Examples:**
+
+- Press **Enter** → uses the default duration of 14 minutes.
+- Enter `600` → keeps the system awake for 10 minutes.
+- Enter `0` or any invalid text → prints an error and asks again.
+
+To stop the program, simply close the terminal window.
+
+---
+
+## Logging
+
+`rust-never-sleep` uses the [`log`](https://crates.io/crates/log) crate with [`env_logger`](https://crates.io/crates/env_logger) for runtime logging.
+
+By default, logs are shown at the `info` level.  
+You can change this by setting the environment variable `RUST_LOG`:
+
+```powershell
+$env:RUST_LOG="debug"
+./rust-never-sleep.exe
+```
+
+Available levels: `error`, `warn`, `info`, `debug`, `trace`.
+
+---
+
+## Technical Details
+
+- **Language:** Rust
+- **Target:** `x86_64-pc-windows-gnu`
+- **Windows API used:** `SetThreadExecutionState`
+  - Flags: `ES_CONTINUOUS`, `ES_DISPLAY_REQUIRED`, `ES_SYSTEM_REQUIRED`, `ES_AWAYMODE_REQUIRED`
+- **Error Handling:**
+  - Input errors are logged and retried.
+  - Windows API failures are logged using `std::io::Error::last_os_error()`.
+
+---
 
 ## Notes
 
-This program is specifically designed for Windows operating systems.
+- Designed exclusively for **Windows** systems.
+- Ensure the use of this utility aligns with your organization’s policies.
+- While running, the program prevents automatic sleep and display timeout events.
 
-It prevents the PC from entering automatic sleep mode as long as it's running.
-
-Ensure the use of this type of program is compliant with the policies of your computing environment.
+---
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions are welcome!  
+If you’d like to improve the code, fix issues, or add features, please open a Pull Request.
+
+---
+
+## License
+
+MIT License © 2025 [James Abib](https://github.com/jabibamman)
