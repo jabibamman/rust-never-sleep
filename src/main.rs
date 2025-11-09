@@ -1,11 +1,12 @@
 #[cfg(windows)]
-extern crate winapi;
+use log::error;
+#[cfg(windows)]
+use log::info;
+use log::warn;
 #[cfg(windows)]
 use std::error::Error;
 #[cfg(windows)]
 use std::time::Duration;
-
-use log::warn;
 
 #[cfg(windows)]
 fn get_duration() -> Result<Duration, Box<dyn Error>> {
@@ -15,48 +16,41 @@ fn get_duration() -> Result<Duration, Box<dyn Error>> {
         let mut input = String::new();
 
         println!("Enter sleep duration in seconds or press Enter for default (14 minutes): ");
-        if stdin().read_line(&mut input).is_err() {
-            eprintln!("Failed to read input, please try again.");
-            continue;
+
+        if let Err(e) = stdin().read_line(&mut input) {
+            error!("Failed to read input from stdin: {}", e);
+            return Err(format!("Failed to read input from stdin: {}", e).into());
         }
 
         let trimmed = input.trim();
 
         if trimmed.is_empty() {
-            eprintln!("No input, defaulting to 14 minutes");
+            warn!("No input provided, defaulting to 14 minutes");
             return Ok(Duration::from_secs(14 * 60));
-            break;
         }
 
-        let trimmed_parse = match trimmed.parse::<u64>() {
-            Ok(secs) => Some(Ok(secs)),
-            Err(e) => Some(Err(e)),
-        };
-
-        match trimmed_parse {
-            None => {
-                eprintln!("Invalid input, please enter a valid number.");
+        match trimmed.parse::<u64>() {
+            Ok(secs) if secs == 0 => {
+                warn!("User entered 0 seconds, which is invalid (must be > 0)");
+                println!("Duration must be greater than zero.");
                 continue;
             }
-            Some(Err(_)) => {
-                eprintln!("Invalid input, please enter a valid number.");
-                continue;
-            }
-            Some(Ok(secs)) if secs == 0 => {
-                eprintln!("Duration must be greater than zero.");
-                continue;
-            }
-            Some(Ok(secs)) => {
+            Ok(secs) => {
+                info!("Sleeping for {} seconds", secs);
                 return Ok(Duration::from_secs(secs));
+            }
+            Err(_) => {
+                warn!("User entered invalid input for duration: '{}'", trimmed);
+                println!("Invalid input, please enter a valid number.");
+                continue;
             }
         }
     }
-
-    Err("Error while getting the duration".into())
 }
 
 #[cfg(windows)]
-fn let_me_sleep() -> Result<(), Box<dyn std::error::Error>> {
+fn let_me_sleep() -> Result<(), Box<dyn Error>> {
+    use std::io;
     use std::thread::sleep;
     use winapi::um::winbase::SetThreadExecutionState;
     use winapi::um::winnt::{
@@ -64,9 +58,13 @@ fn let_me_sleep() -> Result<(), Box<dyn std::error::Error>> {
     };
 
     unsafe {
-        SetThreadExecutionState(
+        let result = SetThreadExecutionState(
             ES_CONTINUOUS | ES_DISPLAY_REQUIRED | ES_SYSTEM_REQUIRED | ES_AWAYMODE_REQUIRED,
         );
+
+        if result == 0 {
+            return Err(io::Error::last_os_error().into());
+        }
     }
 
     let duration = match get_duration() {
@@ -83,7 +81,7 @@ fn let_me_sleep() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 fn main() {
-    env_logger::init();
+    env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
 
     #[cfg(windows)]
     match let_me_sleep() {
