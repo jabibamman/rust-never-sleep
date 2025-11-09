@@ -1,6 +1,6 @@
 [package]
 name = "rust-never-sleep"
-version = "0.2.0"
+version = "0.2.4"
 edition = "2021"
 authors = ["James ABIB <james.abibamman@gmail.com>"]
 description = "A simple crate to prevent Windows from sleeping"
