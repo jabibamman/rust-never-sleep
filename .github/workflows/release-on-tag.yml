@@ -13,10 +13,10 @@ jobs:
       contents: write
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install Rust
+      - name: Install Rust toolchain
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
@@ -27,14 +27,15 @@ jobs:
         shell: bash
         run: |
           TAG_NAME="${GITHUB_REF_NAME}"
-          VERSION="${TAG_NAME#v}"
+          VERSION="${TAG_NAME#v}"  # supprime le 'v' au début
           echo "Setting Cargo.toml version to $VERSION"
+
           sed -i "s/^version = \".*\"/version = \"$VERSION\"/" Cargo.toml
 
           echo "Updated Cargo.toml:"
           grep '^version' Cargo.toml
 
-      - name: Build release exe
+      - name: Build Windows release binary
         run: cargo build --release --target=x86_64-pc-windows-gnu
 
       - name: Create GitHub Release
@@ -103,3 +104,26 @@ jobs:
             This binary is self-contained and requires no installation or dependencies.
           files: |
             target/x86_64-pc-windows-gnu/release/rust-never-sleep.exe
+
+      - name: Commit and push updated Cargo.toml
+        if: success()
+        shell: bash
+        run: |
+          TAG_NAME="${GITHUB_REF_NAME}"
+          VERSION="${TAG_NAME#v}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add Cargo.toml
+
+          # S'il n'y a pas de changement (au cas où), on évite l'erreur de commit
+          if git diff --cached --quiet; then
+            echo "No changes to commit in Cargo.toml."
+            exit 0
+          fi
+
+          git commit -m "chore(ci): auto-update Cargo.toml version to ${VERSION}"
+
+          # On pousse sur master (adapte si ta branche par défaut est main)
+          git push origin HEAD:master
